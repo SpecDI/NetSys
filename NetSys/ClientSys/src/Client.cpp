@@ -26,5 +26,7 @@ namespace NetSys {
 
 		boost::asio::streambuf receive_buffer;
 		boost::asio::read(socket, receive_buffer, boost::asio::transfer_all(), error);
+		std::string server_message = boost::asio::buffer_cast<const char*>(receive_buffer.data());
+		std::cout << server_message << std::endl;
 	}
 }
