@@ -7,7 +7,10 @@ int main()
 {
 	std::cout << "Client entry point\n";
 
-	NetSys::Client client;
+	const unsigned int port = 2573;
+
+	NetSys::Client client(port);
+	client.run();
 
 	std::string dummy_exit;
 	std::getline(std::cin, dummy_exit);
