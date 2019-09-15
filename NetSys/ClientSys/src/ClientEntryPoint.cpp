@@ -10,7 +10,12 @@ int main()
 	const unsigned int port = 2573;
 
 	NetSys::Client client(port);
-	client.run();
+	int connection_code = client.connect();
+	if (connection_code) {
+		std::cout << "Connection failed\n";
+	}
+	std::string respone = client.send_request("Client request");
+	std::cout << respone << std::endl;
 
 	std::string dummy_exit;
 	std::getline(std::cin, dummy_exit);

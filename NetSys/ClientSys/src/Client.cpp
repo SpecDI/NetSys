@@ -1,14 +1,68 @@
 #include "Client.h"
 
-#include "boost/asio.hpp"
+#include <boost/asio.hpp>
+#include <boost/exception/all.hpp>
 
 #include <iostream>
+#include <string_view>
+#include <exception>
+#include <sstream>
 
 namespace NetSys {
 	Client::Client(unsigned int port)
 		: m_portNumber(port)
 	{
-		std::cout << "Client created and sending data over port " << m_portNumber << std::endl;
+		m_address = "127.0.0.1";
+		std::cout << "Client created and sending data over port " << m_portNumber << " with address " << m_address << std::endl;
+	}
+
+	Client::Client(unsigned int port, std::string_view address)
+		: m_portNumber(port), m_address(address)
+	{
+		std::cout << "Client created and sending data over port " << m_portNumber << " with address " << m_address << std::endl;
+	}
+
+	int Client::connect()
+	{
+		// Create socket and reference via stored 
+		if (m_socketPtr == nullptr) {
+			m_socketPtr = std::make_unique<tcp::socket>(m_io_service);
+		}
+
+		boost::system::error_code error;
+		m_socketPtr->connect(tcp::endpoint(boost::asio::ip::address::from_string(m_address), m_portNumber), error);
+
+		return error.value();
+	}
+
+	std::string Client::send_request(std::string_view request)
+	{
+		std::string request_message(request);
+		request_message += "\n";
+
+		boost::system::error_code error;
+
+		if (!m_socketPtr->is_open()) {
+			int status = connect();
+			if (status) {
+				return "Connection failed with status: " + std::to_string(status);
+			}
+		}
+
+		boost::asio::write(*(m_socketPtr.get()), boost::asio::buffer(request_message), error);
+
+		if (error) {
+			return "Connection failed with status: " + std::to_string(error.value());
+		}
+
+		boost::asio::streambuf receive_buffer;
+		boost::asio::read(*(m_socketPtr.get()), receive_buffer, boost::asio::transfer_all(), error);
+
+		if (error && error != boost::asio::error::eof) {
+			return "Connection failed with status: " + std::to_string(error.value());
+		}
+
+		return boost::asio::buffer_cast<const char*>(receive_buffer.data());
 	}
 
 	void Client::run() const
@@ -18,7 +72,7 @@ namespace NetSys {
 		// Create socket to transmit/receive data
 		tcp::socket socket(io_service);
 
-		socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), m_portNumber));
+		socket.connect(tcp::endpoint(boost::asio::ip::address::from_string(m_address), m_portNumber));
 
 		std::string message = "Hello from Client\n";
 		boost::system::error_code error;
