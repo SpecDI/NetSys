@@ -45,16 +45,23 @@ namespace NetSys {
 		if (!m_socketPtr->is_open()) {
 			int status = connect();
 			if (status) {
-				std::stringstream stream;
-				stream << "Connection failed with status: " << status;
-				return stream.str();
+				return "Connection failed with status: " + std::to_string(status);
 			}
 		}
 
 		boost::asio::write(*(m_socketPtr.get()), boost::asio::buffer(request_message), error);
 
+		if (error) {
+			return "Connection failed with status: " + std::to_string(error.value());
+		}
+
 		boost::asio::streambuf receive_buffer;
 		boost::asio::read(*(m_socketPtr.get()), receive_buffer, boost::asio::transfer_all(), error);
+
+		if (error) {
+			return "Connection failed with status: " + std::to_string(error.value());
+		}
+
 		return boost::asio::buffer_cast<const char*>(receive_buffer.data());
 	}
 
