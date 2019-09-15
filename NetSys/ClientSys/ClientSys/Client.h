@@ -16,6 +16,7 @@ namespace NetSys {
 
 		void run() const;
 		int connect();
+		std::string send_request(std::string_view request);
 	protected:
 		unsigned int m_portNumber;
 		std::string m_address;

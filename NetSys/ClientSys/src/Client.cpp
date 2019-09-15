@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string_view>
 #include <exception>
+#include <sstream>
 
 namespace NetSys {
 	Client::Client(unsigned int port)
@@ -32,6 +33,29 @@ namespace NetSys {
 		m_socketPtr->connect(tcp::endpoint(boost::asio::ip::address::from_string(m_address), m_portNumber), error);
 
 		return error.value();
+	}
+
+	std::string Client::send_request(std::string_view request)
+	{
+		std::string request_message(request);
+		request_message += "\n";
+
+		boost::system::error_code error;
+
+		if (!m_socketPtr->is_open()) {
+			int status = connect();
+			if (status) {
+				std::stringstream stream;
+				stream << "Connection failed with status: " << status;
+				return stream.str();
+			}
+		}
+
+		boost::asio::write(*(m_socketPtr.get()), boost::asio::buffer(request_message), error);
+
+		boost::asio::streambuf receive_buffer;
+		boost::asio::read(*(m_socketPtr.get()), receive_buffer, boost::asio::transfer_all(), error);
+		return boost::asio::buffer_cast<const char*>(receive_buffer.data());
 	}
 
 	void Client::run() const
