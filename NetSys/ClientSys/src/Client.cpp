@@ -1,14 +1,22 @@
 #include "Client.h"
 
-#include "boost/asio.hpp"
+#include <boost/asio.hpp>
 
 #include <iostream>
+#include <string_view>
 
 namespace NetSys {
 	Client::Client(unsigned int port)
 		: m_portNumber(port)
 	{
-		std::cout << "Client created and sending data over port " << m_portNumber << std::endl;
+		m_address = "127.0.0.1";
+		std::cout << "Client created and sending data over port " << m_portNumber << " with address " << m_address << std::endl;
+	}
+
+	Client::Client(unsigned int port, std::string_view address)
+		: m_portNumber(port), m_address(address)
+	{
+		std::cout << "Client created and sending data over port " << m_portNumber << " with address " << m_address << std::endl;
 	}
 
 	void Client::run() const
@@ -18,7 +26,7 @@ namespace NetSys {
 		// Create socket to transmit/receive data
 		tcp::socket socket(io_service);
 
-		socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), m_portNumber));
+		socket.connect(tcp::endpoint(boost::asio::ip::address::from_string(m_address), m_portNumber));
 
 		std::string message = "Hello from Client\n";
 		boost::system::error_code error;
