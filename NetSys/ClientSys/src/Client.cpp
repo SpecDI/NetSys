@@ -1,9 +1,11 @@
 #include "Client.h"
 
 #include <boost/asio.hpp>
+#include <boost/exception/all.hpp>
 
 #include <iostream>
 #include <string_view>
+#include <exception>
 
 namespace NetSys {
 	Client::Client(unsigned int port)
@@ -17,6 +19,19 @@ namespace NetSys {
 		: m_portNumber(port), m_address(address)
 	{
 		std::cout << "Client created and sending data over port " << m_portNumber << " with address " << m_address << std::endl;
+	}
+
+	int Client::connect()
+	{
+		// Create socket and reference via stored 
+		if (m_socketPtr == nullptr) {
+			m_socketPtr = std::make_unique<tcp::socket>(m_io_service);
+		}
+
+		boost::system::error_code error;
+		m_socketPtr->connect(tcp::endpoint(boost::asio::ip::address::from_string(m_address), m_portNumber), error);
+
+		return error.value();
 	}
 
 	void Client::run() const
