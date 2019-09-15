@@ -58,7 +58,7 @@ namespace NetSys {
 		boost::asio::streambuf receive_buffer;
 		boost::asio::read(*(m_socketPtr.get()), receive_buffer, boost::asio::transfer_all(), error);
 
-		if (error) {
+		if (error && error != boost::asio::error::eof) {
 			return "Connection failed with status: " + std::to_string(error.value());
 		}
 

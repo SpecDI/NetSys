@@ -14,10 +14,8 @@ int main()
 	if (connection_code) {
 		std::cout << "Connection failed\n";
 	}
-	else {
-		std::string respone = client.send_request("Pula");
-		std::cout << respone << std::endl;
-	}
+	std::string respone = client.send_request("Client request");
+	std::cout << respone << std::endl;
 
 	std::string dummy_exit;
 	std::getline(std::cin, dummy_exit);
